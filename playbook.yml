@@ -1,0 +1,23 @@
+# main playbook that calls the others
+  # name of the playbook
+- name: configure_yabasic
+  # on which hosts to act
+  hosts: all
+  # it allows ansible to execute as root
+  become: yes
+  # whether or not to gather info regarding the nodes
+  gather_facts: False
+
+  pre_tasks:
+      # install python
+    - name: Install python for Ansible
+      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+      changed_when: False
+      # load variables
+    - name: Load variables
+      include_vars: variables/default_var.yml
+
+  roles:
+    # calls base and test roles
+    - base
+    - test

@@ -1,0 +1,47 @@
+- name: Create test directory
+  file:
+    path: "{{ dest_code_dir }}"
+    state: directory
+  tags:
+    - test
+
+- name: Copy test files
+  synchronize:
+    src: '{{ source_code_dir }}'
+    dest: '{{ dest_code_dir }}'
+  tags:
+    - test
+
+- name: Build docker
+  shell: docker-compose build
+  args:
+    chdir: '{{ dest_code_dir  }}'
+  tags:
+    - test
+
+- name: Run the app
+  shell: docker-compose up -d
+  args:
+    chdir: '{{ dest_code_dir  }}'
+  tags:
+    - test
+
+- name: Pause
+  pause:
+    seconds: 10
+  tags:
+    - test
+
+- name: Checks
+  uri:
+    url: http://localhost:80
+    return_content: true
+  register: docker_test_content
+  failed_when: "'Hello, World!' not in docker_test_content.content"
+  tags:
+    - test
+
+- name: Output the content  of the response
+  debug: var=docker_test_content
+  tags:
+    - test

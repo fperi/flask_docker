@@ -1,0 +1,89 @@
+# install preliminary packages
+- name: Install docker packages
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common
+  tags:
+    - docker
+ 
+# Tell apt what's the public key of the
+# source that is signing the packages
+- name: Add Docker s official GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  tags:
+    - docker
+ 
+- name: Verify that we have the key with the fingerprint
+  apt_key:
+    id: 0EBFCD88
+    state: present
+  tags:
+    - docker
+
+# Add the docker apt repository
+- name: Set up the stable repository
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+    state: present
+    update_cache: yes
+  tags:
+    - docker
+
+# sudo apt-get update
+- name: Update apt packages
+  apt:
+    update_cache: yes
+  tags:
+    - docker
+ 
+# Install docker-ce
+- name: Install docker
+  apt:
+    name: docker-ce=18.03.*
+    state: present
+    update_cache: yes
+  tags:
+    - docker
+
+# Install docker-compose
+- name: Install docker-compose
+  pip:
+    name: docker-compose
+  tags:
+    - docker
+
+# Enable docker systemd
+- name: 'enable docker systemd service'
+  service:
+    name: 'docker'
+    state: 'started'
+    enabled: 'yes'
+
+# Add users we want to make part of the docker group so that they can
+# user the docker socket
+- name: 'add users to docker group'
+  user:
+    name: '{{ item }}'
+    groups: 'docker'
+    append: 'yes'
+  with_items: '{{ docker_group_members }}'
+  when: 'docker_group_members is defined'
+
+
+# Clean useless docker stuff
+- name: Add cleaning task
+  cron:
+    name:       "Garbage collection for docker"
+    minute:     "{{ 59 | random(seed=inventory_hostname) }}"
+    hour:       "23"
+    user:       root
+    job:        "docker system prune --force && docker image prune --force --all && docker volume prune --force"
+    cron_file:  docker-garbage-collector

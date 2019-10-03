@@ -1,0 +1,4 @@
+source_code_dir: 'code/'
+dest_code_dir: '/home/vagrant/code'
+docker_group_members: 
+  - 'vagrant'
