@@ -11,7 +11,7 @@
     - software-properties-common
   tags:
     - docker
- 
+
 # Tell apt what's the public key of the
 # source that is signing the packages
 - name: Add Docker s official GPG key
@@ -20,7 +20,7 @@
     state: present
   tags:
     - docker
- 
+
 - name: Verify that we have the key with the fingerprint
   apt_key:
     id: 0EBFCD88
@@ -43,7 +43,7 @@
     update_cache: yes
   tags:
     - docker
- 
+
 # Install docker-ce
 - name: Install docker
   apt:
